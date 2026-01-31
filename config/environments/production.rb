@@ -34,13 +34,13 @@ Rails.application.configure do
   # config.asset_host = "http://assets.example.com"
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :amazon
+  config.active_storage.service = :local
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  config.assume_ssl = true
+  config.assume_ssl = false
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  config.force_ssl = false
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
@@ -69,7 +69,7 @@ Rails.application.configure do
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
-  config.action_mailer.default_url_options = {host: "visualizer.coffee", protocol: "https"}
+  config.action_mailer.default_url_options = {host: ENV.fetch("RAILS_HOST", "localhost:3000"), protocol: "http"}
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.delivery_method = :postmark
   config.action_mailer.postmark_settings = {api_token: Rails.application.credentials.postmark&.api_token}
@@ -86,15 +86,16 @@ Rails.application.configure do
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [:id]
 
-  # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
+  config.hosts = [
+    ".local",          # Allow requests from .local names (Bonjour/mDNS)
+    /192\.168\..*/,    # Allow requests from typical local network IPs
+    /10\..*/,           # Allow requests from another common local network range
+    /172\.(1[6-9]|2[0-9]|3[0-1])\..*/ # Allow requests from another common local network range
+  ]
   #
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
-  config.webauthn_origin = "https://visualizer.coffee"
+  config.webauthn_origin = ENV.fetch("WEBAUTHN_ORIGIN", "http://localhost:3000")
 end
-Rails.application.routes.default_url_options[:host] = "visualizer.coffee"
+Rails.application.routes.default_url_options[:host] = ENV.fetch("RAILS_HOST", "localhost:3000")

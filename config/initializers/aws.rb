@@ -1,6 +1,5 @@
-require "aws-sdk-s3"
-
-if Rails.application.credentials.aws
+if Rails.application.credentials.aws&.region
+  require "aws-sdk-s3"
   Aws.config.update(
     credentials: Aws::Credentials.new(
       Rails.application.credentials.aws&.access_key_id,
